@@ -7,10 +7,10 @@ const cp = require('child_process');
 
 const directory = 'video';
 const streamsUrl = {};
-      streamsUrl.zal1 = 'rtsp://admin:liana2017@10.12.19.8:554/Streaming/Channels/1802';
-      streamsUrl.zal2 = 'rtsp://admin:liana2017@10.12.19.8:554/Streaming/Channels/1702';
-      streamsUrl.zal3 = 'rtsp://admin:liana2017@10.12.19.8:554/Streaming/Channels/1602';
-      streamsUrl.zal4 = 'rtsp://admin:liana2017@10.12.19.8:554/Streaming/Channels/1502';
+      streamsUrl.zal1 = 'rtsp://********:**********@1.1.1.1:111/Streaming/Channels/1802';
+      streamsUrl.zal2 = 'rtsp://********:**********@1.1.1.1:111/Streaming/Channels/1702';
+      streamsUrl.zal3 = 'rtsp://********:**********@1.1.1.1:111/Streaming/Channels/1602';
+      streamsUrl.zal4 = 'rtsp://********:**********@1.1.1.1:111/Streaming/Channels/1502';
 
 var asd ={};
 var zal;
