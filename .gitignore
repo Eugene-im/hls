@@ -1,4 +1,4 @@
 /node_modules
-/video
+/video/zal*
 package-lock.json
 config.json

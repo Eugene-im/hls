@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ua">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сервіс трансляцій судових засідань 7ААС</title>
+    <link rel="stylesheet" href="./css/main.css">
+</head>
+<body>
+    <div class="content">
+        <div class="panel">
+            <div class="panel__content">
+                <h1>Сервіс трансляцій судових засідань 7ААС</h1>
+                <h2>Зал №4</h2>
+                <div class="buttons">
+                <button class="start" id="start" onclick="translation('start4', 'green', 'Здійснюється трансляція на сайт http\:\/\/video.vaas.gov.ua\/')">Розпочати трансляцію</button>
+                    <button class="end" id="end"  onclick="translation('stop4', 'red', 'Трансляція не відбувається')">Завершити трансляцію</button>
+                </div>
+                <div class="status">
+                    <div class="marker"></div>
+                    <h3 class="text-status">Трансляція не відбувається</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="./js/jquery.min.js"></script>
+<script src="./js/index.js"></script>
+</html>
