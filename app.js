@@ -107,13 +107,8 @@ app.get('/start:id', function (req, res) {
   var cmd = `ffmpeg -i ${conf[zal]} -c:v libx264 -c:a aac -ac 1 -strict -2 -crf 18 -profile:v baseline -maxrate 400k -bufsize 1835k -pix_fmt yuv420p -hls_time 10 -hls_list_size 6 -hls_wrap 10 -start_number 1 ${directory}/${directoryTr}/${zal}/index.m3u8`;
 
   if (req.params.id < 5) {
-    if (!fs.existsSync(`${directory}/${directoryTr}/${zal}`)) {
-      fsx.mkdirs(`${directory}/${directoryTr}/${zal}`);
-    } else {
-      refreshFolder(`${directory}/${directoryTr}/${zal}`)
-    }
 
-
+    refreshFolder(`${directory}/${directoryTr}/${zal}`)
 
     asd[zal] = cp.exec(cmd, function (err, stdout, stderr) {
       if (err) {
@@ -125,6 +120,7 @@ app.get('/start:id', function (req, res) {
       }
     })
     myEmitter.emit(`start${req.params.id}`);
+    console.log(state);
     res.status(200).send({
       status: "ok",
       text: `${zal} start streaming`
@@ -164,26 +160,23 @@ app.get('/stop:id', function (req, res) {
 })
 
 app.get('/state:id', function (req, res) {
-  if (state.zal1) {
-    zal = `zal${req.params.id}`;
+  zal = `zal${req.params.id}`;
+  if (state[zal]) {
     res.status(200).send({
       status: "ok",
       text: `stream from ${zal} is plaing`
     });
-  } else if (state.zal2) {
-    zal = `zal${req.params.id}`;
+  } else if (state[zal]) {
     res.status(200).send({
       status: "ok",
       text: `stream from ${zal} is plaing`
     });
-  } else if (state.zal3) {
-    zal = `zal${req.params.id}`;
+  } else if (state[zal]) {
     res.status(200).send({
       status: "ok",
       text: `stream from ${zal} is plaing`
     });
-  } else if (state.zal4) {
-    zal = `zal${req.params.id}`;
+  } else if (state[zal]) {
     res.status(200).send({
       status: "ok",
       text: `stream from ${zal} is plaing`
@@ -197,10 +190,8 @@ app.get('/state:id', function (req, res) {
 })
 
 function refreshFolder(path) {
-  fsx.remove(path, err => {
-    if (err) console.error(err)
-  })
-  if (!fsx.existsSync(path)) {
-    fsx.mkdirs(path);
+  if (fsx.existsSync(path)) {
+    fsx.removeSync(path);
   }
+  fsx.ensureDirSync(path);
 }
