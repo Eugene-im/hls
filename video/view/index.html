@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Онлайн трансляція | Сьомий апеляційний адміністративний суд</title>
+    <link rel="icon" href="https://7aac.gov.ua/wp-content/uploads/2019/03/cropped-ЛОГО-1_2_8_0000_Слой-4-2-1-32x32.png" sizes="32x32">
+    <link rel="icon" href="https://7aac.gov.ua/wp-content/uploads/2019/03/cropped-ЛОГО-1_2_8_0000_Слой-4-2-1-192x192.png" sizes="192x192">
+    <!-- <script type="text/javascript" src="../js/hls.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>-->
+    <style>
+    body {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        background: #eee;
+        min-height: 100vh;
+    	margin: 0;
+    	align-content: space-evenly;
+    }
+
+    .video__item {
+        width: 40%;
+    }
+
+    .video__item__title{
+    	text-align: center;
+    	font-size: 18px;
+    }
+
+    video {
+        width: 100%;
+        background: url('http://vaas.gov.ua/wp-content/uploads/2018/02/1234.jpeg') center center no-repeat;
+        background-size: contain;
+    }
+
+    @media (max-width: 1024px) {
+    	body{
+    		margin: 8px;
+    	}
+        .video__item {
+            width: 100%;
+        }
+    }
+    </style>
+</head>
+
+<body>
+    <div class="video__item">
+        <div class="video__item__title"> Зал №1</div>
+        <video id='video1' controls="" class="video_hls" src=""></video>
+    </div>
+    <div class="video__item">
+        <div class="video__item__title"> Зал №2</div>
+        <video id='video2' controls="" class="video_hls" src=""></video>
+    </div>
+    <div class="video__item">
+        <div class="video__item__title"> Зал №3</div>
+        <video id='video3' controls="" class="video_hls" src=""></video>
+    </div>
+    <div class="video__item">
+        <div class="video__item__title"> Зал №4</div>
+        <video id='video4' controls="" class="video_hls" src=""></video>
+    </div>
+</body>
+<script src="main.js?ver=1.1" defer></script>
+
+</html>

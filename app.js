@@ -1,8 +1,8 @@
 const MyEmitter = require('events');
 const myEmitter = new MyEmitter();
 const express = require('express');
-const fapp = express();
 const app = express();
+const fapp = express();
 const fsx = require("fs-extra");
 const fs = require("fs");
 const path = require('path');
@@ -11,46 +11,13 @@ const conf = require('./config.json');
 
 const directory = 'video';
 const directoryTr = 'trans';
+const directoryView = 'view';
 
-refreshFolder(`${directory}/${directoryTr}`)
-// var optionsStream = {
-//   extensions: ['m3u', 'mu8'],
-//   index: false,
-//   maxAge: '0',
+refreshFolder(`${directory}/${directoryView}/${directoryTr}/zal1`)
+refreshFolder(`${directory}/${directoryView}/${directoryTr}/zal2`)
+refreshFolder(`${directory}/${directoryView}/${directoryTr}/zal3`)
+refreshFolder(`${directory}/${directoryView}/${directoryTr}/zal4`)
 
-//   redirect: false,
-//   headers: {
-//     'Access-Control-Allow-Origin': '*',
-//     'Connection': 'Keep-Alive',
-//     'Content-Type': 'application/x-mpegURL',
-//     'Cache-Control': 'no-cache no-store must-revalidate'
-//   }
-// }
-
-// var optionsStreamTs = {
-//   etag: false,
-//   extensions: ['ts'],
-//   index: false,
-//   maxAge: '0',
-//   redirect: false,
-//   headers: {
-//     'Access-Control-Allow-Origin': '*',
-//     'Connection': 'Keep-Alive',
-//     'Content-Type': 'video/mp2t'
-//   }
-// }
-
-// var options = {
-//   dotfiles: 'ignore',
-//   etag: false,
-//   extensions: ['htm', 'html'],
-//   index: false,
-//   maxAge: '1d',
-//   redirect: false,
-//   setHeaders: function (res, path, stat) {
-//     res.set('x-timestamp', Date.now())
-//   }
-// }
 
 var asd = {};
 var zal;
@@ -90,93 +57,85 @@ app.listen(8000);
 fapp.listen(9000);
 
 app.use('/', express.static(__dirname + `/${directory}`));
-fapp.use('/', express.static(__dirname + `/${directory}/${directoryTr}`));
+fapp.use('/', express.static(__dirname + `/${directory}/${directoryView}`));
+
 app.get('/z:id', function (req, res) {
   res.status(200).sendFile(path.join(__dirname + `/${directory}` + `/z${req.params.id}.html`));
 });
-// fapp.get('/z:id', function (req, res) {
-//   res.status(200).sendFile(path.join(__dirname + `/${directory}/${directoryTr}/zal${req.params.id}/index.m3u8`),optionsStream);
-// });
-// fapp.get('/z:id/:name.ts', function (req, res) {
-//   res.status(200).sendFile(path.join(__dirname + `/${directory}/${directoryTr}/zal${req.params.id}/${req.params.name}.ts`),optionsStreamTs);
-// });
+
+fapp.get('/', function (req, res) {
+  res.status(200).sendFile(path.join(__dirname + `/${directory}/${directoryView}/` + `index.html`));
+});
 
 app.get('/start:id', function (req, res) {
   zal = `zal${req.params.id}`;
+  try {
 
-  var cmd = `ffmpeg -i ${conf[zal]} -c:v libx264 -c:a aac -ac 1 -strict -2 -crf 18 -profile:v baseline -maxrate 400k -bufsize 1835k -pix_fmt yuv420p -hls_time 10 -hls_list_size 6 -hls_wrap 10 -start_number 1 ${directory}/${directoryTr}/${zal}/index.m3u8`;
+    refreshFolder(`${directory}/${directoryView}/${directoryTr}/${zal}/`)
 
-  if (req.params.id < 5) {
+    var cmd = `ffmpeg -i ${conf[zal]} -c:v libx264 -c:a aac -ac 1 -strict -2 -crf 18 -profile:v baseline -maxrate 400k -bufsize 1835k -pix_fmt yuv420p -hls_time 10 -hls_list_size 6 -hls_wrap 10 -start_number 1 ${directory}/${directoryView}/${directoryTr}/${zal}/index.m3u8`;
 
-    refreshFolder(`${directory}/${directoryTr}/${zal}`)
+    if (req.params.id < 5) {
 
-    asd[zal] = cp.exec(cmd, function (err, stdout, stderr) {
-      if (err) {
-        console.log(err);
-      } else if (stdout) {
-        console.log(stdout);
-      } else if (stderr) {
-        console.log(stderr)
-      }
-    })
-    myEmitter.emit(`start${req.params.id}`);
-    console.log(state);
-    res.status(200).send({
-      status: "ok",
-      text: `${zal} start streaming`
-    });
-  } else {
-    res.status(400).send(`check zal, ${zal} is exist`);
+
+      asd[zal] = cp.exec(cmd, function (err, stdout, stderr) {
+        if (err) {
+          console.log(err);
+        } else if (stdout) {
+          console.log(stdout);
+        } else if (stderr) {
+          console.log(stderr)
+        }
+      })
+      myEmitter.emit(`start${req.params.id}`);
+      console.log(state);
+      res.status(200).send({
+        status: "ok",
+        text: `${zal} start streaming`
+      });
+    } else {
+      res.status(400).send(`check zal, ${zal} is exist`);
+    }
+  } catch (err) {
+    console.log(err)
   }
-
 });
 
 
 app.get('/stop:id', function (req, res) {
   zal = `zal${req.params.id}`;
-  if ((req.params.id < 5) && (asd[zal] != undefined)) {
-    res.status(200).send({
-      status: "ok",
-      text: `${zal} stop streaming`
-    });
-    asd[zal].stdin.write('q');
-    asd[zal].on('exit', function () {
-      asd[zal] = null;
-      refreshFolder(`${directory}/${directoryTr}/${zal}`)
-    })
-    myEmitter.emit(`stop${req.params.id}`);
+  try {
 
-  } else if ((req.params.id > 5) && (asd[zal] != undefined)) {
-    res.status(400).send({
-      status: "no",
-      text: `check zal, ${zal} is exist`
-    });
-  } else {
-    res.status(400).send({
-      status: "no",
-      text: `stream from ${zal} is exist`
-    });
+    if ((req.params.id < 5) && (asd[zal] != undefined)) {
+      res.status(200).send({
+        status: "ok",
+        text: `${zal} stop streaming`
+      });
+      asd[zal].stdin.write('q');
+      asd[zal].on('exit', function () {
+        asd[zal] = null;
+      })
+      myEmitter.emit(`stop${req.params.id}`);
+      setTimeout(refreshFolder, 3000, `${directory}/${directoryView}/${directoryTr}/${zal}/`);
+    } else if ((req.params.id > 5) && (asd[zal] != undefined)) {
+      res.status(400).send({
+        status: "no",
+        text: `check zal, ${zal} is exist`
+      });
+    } else {
+      res.status(400).send({
+        status: "no",
+        text: `stream from ${zal} is exist`
+      });
+    }
+  } catch (err) {
+    console.log(err)
   }
 })
 
 app.get('/state:id', function (req, res) {
   zal = `zal${req.params.id}`;
   if (state[zal]) {
-    res.status(200).send({
-      status: "ok",
-      text: `stream from ${zal} is plaing`
-    });
-  } else if (state[zal]) {
-    res.status(200).send({
-      status: "ok",
-      text: `stream from ${zal} is plaing`
-    });
-  } else if (state[zal]) {
-    res.status(200).send({
-      status: "ok",
-      text: `stream from ${zal} is plaing`
-    });
-  } else if (state[zal]) {
     res.status(200).send({
       status: "ok",
       text: `stream from ${zal} is plaing`
@@ -190,8 +149,30 @@ app.get('/state:id', function (req, res) {
 })
 
 function refreshFolder(path) {
-  if (fsx.existsSync(path)) {
-    fsx.removeSync(path);
+  try {
+
+    if (fsx.existsSync(path)) {
+      fsx.remove(path, err => {
+        if (err) return console.error(err);
+        fsx.ensureDir(path)
+        .then(() => {
+          console.log('success create after remove!')
+        })
+        .catch(err => {
+          console.error(err)
+        })
+        console.log('success remove!');
+      })
+    } else {
+      fsx.ensureDir(path)
+        .then(() => {
+          console.log('success create!')
+        })
+        .catch(err => {
+          console.error(err)
+        })
+    }
+  } catch (err) {
+    console.log(err)
   }
-  fsx.ensureDirSync(path);
 }
