@@ -12,17 +12,45 @@ const conf = require('./config.json');
 const directory = 'video';
 const directoryTr = 'trans';
 
-var options = {
-  dotfiles: 'ignore',
-  etag: false,
-  extensions: ['m3u', 'mu8'],
-  index: false,
-  maxAge: '3600',
-  redirect: false,
-  setHeaders: function (res, path, stat) {
-    res.set('Access-Control-Allow-Origin','*')
-  }
-}
+refreshFolder(`${directory}/${directoryTr}`)
+// var optionsStream = {
+//   extensions: ['m3u', 'mu8'],
+//   index: false,
+//   maxAge: '0',
+
+//   redirect: false,
+//   headers: {
+//     'Access-Control-Allow-Origin': '*',
+//     'Connection': 'Keep-Alive',
+//     'Content-Type': 'application/x-mpegURL',
+//     'Cache-Control': 'no-cache no-store must-revalidate'
+//   }
+// }
+
+// var optionsStreamTs = {
+//   etag: false,
+//   extensions: ['ts'],
+//   index: false,
+//   maxAge: '0',
+//   redirect: false,
+//   headers: {
+//     'Access-Control-Allow-Origin': '*',
+//     'Connection': 'Keep-Alive',
+//     'Content-Type': 'video/mp2t'
+//   }
+// }
+
+// var options = {
+//   dotfiles: 'ignore',
+//   etag: false,
+//   extensions: ['htm', 'html'],
+//   index: false,
+//   maxAge: '1d',
+//   redirect: false,
+//   setHeaders: function (res, path, stat) {
+//     res.set('x-timestamp', Date.now())
+//   }
+// }
 
 var asd = {};
 var zal;
@@ -32,6 +60,7 @@ var state = {
   zal3: false,
   zal4: false,
 };
+
 myEmitter.on('start1', () => {
   state.zal1 = true
 });
@@ -65,21 +94,26 @@ fapp.use('/', express.static(__dirname + `/${directory}/${directoryTr}`));
 app.get('/z:id', function (req, res) {
   res.status(200).sendFile(path.join(__dirname + `/${directory}` + `/z${req.params.id}.html`));
 });
-fapp.get('/z:id', function (req, res) {
-  res.status(200).sendFile(path.join(__dirname + `/${directory}/${directoryTr}/zal${req.params.id}/index.m3u8`));
-});
+// fapp.get('/z:id', function (req, res) {
+//   res.status(200).sendFile(path.join(__dirname + `/${directory}/${directoryTr}/zal${req.params.id}/index.m3u8`),optionsStream);
+// });
+// fapp.get('/z:id/:name.ts', function (req, res) {
+//   res.status(200).sendFile(path.join(__dirname + `/${directory}/${directoryTr}/zal${req.params.id}/${req.params.name}.ts`),optionsStreamTs);
+// });
 
 app.get('/start:id', function (req, res) {
   zal = `zal${req.params.id}`;
+
   var cmd = `ffmpeg -i ${conf[zal]} -c:v libx264 -c:a aac -ac 1 -strict -2 -crf 18 -profile:v baseline -maxrate 400k -bufsize 1835k -pix_fmt yuv420p -hls_time 10 -hls_list_size 6 -hls_wrap 10 -start_number 1 ${directory}/${directoryTr}/${zal}/index.m3u8`;
 
   if (req.params.id < 5) {
     if (!fs.existsSync(`${directory}/${directoryTr}/${zal}`)) {
       fsx.mkdirs(`${directory}/${directoryTr}/${zal}`);
     } else {
-      deleteFolder(`${directory}/${directoryTr}/${zal}`);
-      fsx.mkdirs(`${directory}/${directoryTr}/${zal}`);
+      refreshFolder(`${directory}/${directoryTr}/${zal}`)
     }
+
+
 
     asd[zal] = cp.exec(cmd, function (err, stdout, stderr) {
       if (err) {
@@ -112,8 +146,7 @@ app.get('/stop:id', function (req, res) {
     asd[zal].stdin.write('q');
     asd[zal].on('exit', function () {
       asd[zal] = null;
-      deleteFolder(`${directory}/${directoryTr}/${zal}`);
-      fsx.mkdirs(`${directory}/${directoryTr}/${zal}`);
+      refreshFolder(`${directory}/${directoryTr}/${zal}`)
     })
     myEmitter.emit(`stop${req.params.id}`);
 
@@ -131,23 +164,26 @@ app.get('/stop:id', function (req, res) {
 })
 
 app.get('/state:id', function (req, res) {
-  zal = `zal${req.params.id}`;
   if (state.zal1) {
+    zal = `zal${req.params.id}`;
     res.status(200).send({
       status: "ok",
       text: `stream from ${zal} is plaing`
     });
   } else if (state.zal2) {
+    zal = `zal${req.params.id}`;
     res.status(200).send({
       status: "ok",
       text: `stream from ${zal} is plaing`
     });
   } else if (state.zal3) {
+    zal = `zal${req.params.id}`;
     res.status(200).send({
       status: "ok",
       text: `stream from ${zal} is plaing`
     });
   } else if (state.zal4) {
+    zal = `zal${req.params.id}`;
     res.status(200).send({
       status: "ok",
       text: `stream from ${zal} is plaing`
@@ -159,13 +195,12 @@ app.get('/state:id', function (req, res) {
     })
   }
 })
-//path = ;
-function deleteFolder(path) {
-  if (fsx.existsSync(path)) {
-    fsx.remove(path, err => {
-      if (err) console.error(err)
-    })
-  } else {
-    console.error("file not exists")
+
+function refreshFolder(path) {
+  fsx.remove(path, err => {
+    if (err) console.error(err)
+  })
+  if (!fsx.existsSync(path)) {
+    fsx.mkdirs(path);
   }
 }
