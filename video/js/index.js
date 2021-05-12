@@ -25,3 +25,4 @@ function translation (mission, color, color2, comment, comment2){
   };
 
 setInterval(translation, 3000, `state${window.location.pathname.slice(-1)}`, 'green', 'red', 'plaing', 'not plaing')
+

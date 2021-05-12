@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ua">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сервіс трансляцій судових засідань 7ААС</title>
+    <link rel="stylesheet" href="./css/main.css">
+</head>
+
+<body>
+    <div class="content">
+        <div class="panel">
+            <div class="panel__content">
+                <h1>Сервіс трансляцій судових засідань 7ААС</h1>
+                <h2>Зал №1</h2>
+                <div class="buttons">
+                    <button class="start" zal='1' id="start">Розпочати
+                        трансляцію</button>
+                    <button class="end" zal='2' id="end">Завершити
+                        трансляцію</button>
+                </div>
+                <div class="status">
+                    <div id='marker' class="marker"></div>
+                    <h3 id='textStatus' class="text-status">Трансляція не відбувається</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const messages = {
+        code1:'Трансляція не відбувається',
+        code2:'Трансляція',
+        code3:'Трансляція зараз в процессі не натискайте "Розпочати трансляцію" \n у разі помилки - телефонуйте 7555',
+    }
+    var socket = io();
+    start.addEventListener('click', function () {
+        socket.emit('start', start.attributes.zal.value);
+    })
+    end.addEventListener('click', function () {
+        socket.emit('stop', end.attributes.zal.value);
+    })
+    socket.on('start', function (status) {
+        console.log(status);
+        textStatus.innerHTML = status;
+        marker.setAttribute('style','background-color:green')
+    });
+    socket.on('error', function (status) {
+        console.log(status);
+        textStatus.innerHTML = status;
+        marker.setAttribute('style','background-color:red')
+    });
+    socket.on('stop', function (status) {
+        console.log(status);
+        textStatus.innerHTML = status;
+        marker.setAttribute('style','background-color:red')
+    });
+    socket.on('status', function (status) {
+        console.log(status);
+        textStatus.innerHTML = status;
+        // marker.setAttribute('style','background-color:red')
+    });
+</script>
+
+</html>

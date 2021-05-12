@@ -1,5 +1,3 @@
-const MyEmitter = require('events');
-const myEmitter = new MyEmitter();
 const express = require('express');
 const app = express();
 const fapp = express();
@@ -7,6 +5,7 @@ const fsx = require("fs-extra");
 const fs = require("fs");
 const path = require('path');
 const cp = require('child_process');
+const psTree = require('ps-tree');
 const conf = require('./config.json');
 
 const directory = 'video';
@@ -28,41 +27,14 @@ var state = {
   zal4: false,
 };
 
-myEmitter.on('start1', () => {
-  state.zal1 = true
-});
-myEmitter.on('start2', () => {
-  state.zal2 = true
-});
-myEmitter.on('start3', () => {
-  state.zal3 = true
-});
-myEmitter.on('start4', () => {
-  state.zal4 = true
-});
-myEmitter.on('stop1', () => {
-  state.zal1 = false
-});
-myEmitter.on('stop2', () => {
-  state.zal2 = false
-});
-myEmitter.on('stop3', () => {
-  state.zal3 = false
-});
-myEmitter.on('stop4', () => {
-  state.zal4 = false
-});
-
 app.listen(8000);
 fapp.listen(9000);
 
 app.use('/', express.static(__dirname + `/${directory}`));
-fapp.use('/', express.static(__dirname + `/${directory}/${directoryView}`));
-
 app.get('/z:id', function (req, res) {
   res.status(200).sendFile(path.join(__dirname + `/${directory}` + `/z${req.params.id}.html`));
 });
-
+fapp.use('/', express.static(__dirname + `/${directory}/${directoryView}`));
 fapp.get('/', function (req, res) {
   res.status(200).sendFile(path.join(__dirname + `/${directory}/${directoryView}/` + `index.html`));
 });
@@ -87,7 +59,13 @@ app.get('/start:id', function (req, res) {
           console.log(stderr)
         }
       })
-      myEmitter.emit(`start${req.params.id}`);
+      let pid = asd[zal].pid
+      psTree(pid, function (err, children) {
+        asd[zal].ppid = asd[zal].pid;
+        asd[zal].pid = +children[0].PID;
+        state[zal] = true;
+      });
+      console.log(asd[zal].pid);
       console.log(state);
       res.status(200).send({
         status: "ok",
@@ -111,12 +89,36 @@ app.get('/stop:id', function (req, res) {
         status: "ok",
         text: `${zal} stop streaming`
       });
-      asd[zal].stdin.write('q');
-      asd[zal].on('exit', function () {
-        asd[zal] = null;
-      })
-      myEmitter.emit(`stop${req.params.id}`);
-      setTimeout(refreshFolder, 3000, `${directory}/${directoryView}/${directoryTr}/${zal}/`);
+      console.log(asd[zal].pid);
+      const killProcess = ({
+        pid,
+        signal = 'SIGTERM',
+
+      } = {}) => {
+        try {
+          let x = true;
+          process.kill(pid, signal);
+          do {
+            try {
+              process.kill(pid, 0);
+            } catch (e) {
+              x = false;
+              asd[zal] = null;
+              state[zal] = false;
+              setTimeout(refreshFolder, 3000, `${directory}/${directoryView}/${directoryTr}/${zal}/`);
+              return console.log('process kill 3 ', e);
+            }
+          } while (x);
+        } catch (e2) {
+          asd[zal] = null;
+          state[zal] = false;
+          setTimeout(refreshFolder, 3000, `${directory}/${directoryView}/${directoryTr}/${zal}/`);
+          return console.log('process exist ', e2)
+        }
+      };
+      killProcess({
+        pid: asd[zal].pid,
+      });
     } else if ((req.params.id > 5) && (asd[zal] != undefined)) {
       res.status(400).send({
         status: "no",
@@ -135,7 +137,7 @@ app.get('/stop:id', function (req, res) {
 
 app.get('/state:id', function (req, res) {
   zal = `zal${req.params.id}`;
-  if (state[zal]) {
+  if (state[zal] === true) {
     res.status(200).send({
       status: "ok",
       text: `stream from ${zal} is plaing`
@@ -155,12 +157,12 @@ function refreshFolder(path) {
       fsx.remove(path, err => {
         if (err) return console.error(err);
         fsx.ensureDir(path)
-        .then(() => {
-          console.log('success create after remove!')
-        })
-        .catch(err => {
-          console.error(err)
-        })
+          .then(() => {
+            console.log('success create after remove!')
+          })
+          .catch(err => {
+            console.error(err)
+          })
         console.log('success remove!');
       })
     } else {
